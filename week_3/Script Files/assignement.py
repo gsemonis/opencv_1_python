@@ -64,3 +64,45 @@ for h_i in range(border, height + border):
 ### YOUR CODE HERE
 ###
 videoWriter.release()
+
+border = ksize // 2
+paddedIm = np.zeros((height + border * 2, width + border * 2))
+paddedIm = cv2.copyMakeBorder(im, border, border, border, border, cv2.BORDER_CONSTANT, value=1)
+paddedErodedIm = paddedIm.copy()
+
+# Create a VideoWriter object
+# Use frame size as 50x50
+###
+### YOUR CODE HERE
+###
+videoWriter = cv2.VideoWriter('erosionScratch.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (50, 50))
+for h_i in range(border, height + border):
+    for w_i in range(border, width + border):
+        ###
+        ### YOUR CODE HERE
+        ###
+        roi = paddedIm[h_i - border: h_i + border + 1, w_i - border: w_i + border + 1]
+        roi = roi[element == 1]
+
+        paddedErodedIm[h_i, w_i] = 1 if np.all(roi) else 0
+
+        # Resize output to 50x50 before writing it to the video
+        ###
+        ### YOUR CODE HERE
+        ###
+        paddingRemoved = paddedErodedIm[border:-border, border:-border]
+        resized = cv2.resize(paddingRemoved, (50, 50), interpolation=cv2.INTER_NEAREST)
+
+        # Convert resizedFrame to BGR before writing
+        ###
+        ### YOUR CODE HERE
+        ###
+        resized *= 255
+        bgr = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+
+        videoWriter.write(bgr)
+# Release the VideoWriter object
+###
+### YOUR CODE HERE
+###
+videoWriter.release()
