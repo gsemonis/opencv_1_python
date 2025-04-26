@@ -33,11 +33,7 @@
 
 import cv2
 import matplotlib.pyplot as plt
-from dataPath import DATA_PATH
 import numpy as np
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-
 # In[141]:
 
 
@@ -50,15 +46,17 @@ matplotlib.rcParams['image.cmap'] = 'gray'
 
 
 # Image path
-imagePath = DATA_PATH + "images/CoinsA.png"
+imagePath = "CoinsA.png"
 # Read image
 # Store it in the variable image
 ###
 ### YOUR CODE HERE
 ###
+image =  cv2.imread(imagePath, cv2.IMREAD_COLOR)
 imageCopy = image.copy()
-plt.imshow(image[:,:,::-1]);
-plt.title("Original Image")
+# plt.imshow(image[:,:,::-1])
+# plt.title("Original Image")
+# plt.show()
 
 
 # ## <font style = "color:rgb(50,120,229)">Step 2.1: Convert Image to Grayscale</font>
@@ -71,18 +69,19 @@ plt.title("Original Image")
 ###
 ### YOUR CODE HERE
 ###
-
+imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # In[144]:
 
 
-plt.figure(figsize=(12,12))
-plt.subplot(121)
-plt.imshow(image[:,:,::-1]);
-plt.title("Original Image")
-plt.subplot(122)
-plt.imshow(imageGray);
-plt.title("Grayscale Image");
+# plt.figure(figsize=(12,12))
+# plt.subplot(121)
+# plt.imshow(image[:,:,::-1])
+# plt.title("Original Image")
+# plt.subplot(122)
+# plt.imshow(imageGray)
+# plt.title("Grayscale Image")
+# plt.show()
 
 
 # ## <font style = "color:rgb(50,120,229)">Step 2.2: Split Image into R,G,B Channels</font>
@@ -95,25 +94,25 @@ plt.title("Grayscale Image");
 ###
 ### YOUR CODE HERE
 ###
-
+imageB, imageG, imageR = cv2.split(image)
 
 # In[146]:
 
 
-plt.figure(figsize=(20,12))
-plt.subplot(141)
-plt.imshow(image[:,:,::-1]);
-plt.title("Original Image")
-plt.subplot(142)
-plt.imshow(imageB);
-plt.title("Blue Channel")
-plt.subplot(143)
-plt.imshow(imageG);
-plt.title("Green Channel")
-plt.subplot(144)
-plt.imshow(imageR);
-plt.title("Red Channel");
-
+# plt.figure(figsize=(20,12))
+# plt.subplot(141)
+# plt.imshow(image[:,:,::-1])
+# plt.title("Original Image")
+# plt.subplot(142)
+# plt.imshow(imageB)
+# plt.title("Blue Channel")
+# plt.subplot(143)
+# plt.imshow(imageG)
+# plt.title("Green Channel")
+# plt.subplot(144)
+# plt.imshow(imageR);
+# plt.title("Red Channel")
+# plt.show()
 
 # ## <font style = "color:rgb(50,120,229)">Step 3.1: Perform Thresholding</font>
 # 
@@ -125,6 +124,8 @@ plt.title("Red Channel");
 ###
 ### YOUR CODE HERE
 ###
+_, thresh = cv2.threshold(imageG, 15, 255, cv2.THRESH_BINARY_INV)
+
 
 
 # In[148]:
@@ -134,7 +135,9 @@ plt.title("Red Channel");
 ###
 ### YOUR CODE HERE
 ###
-
+# plt.title("threshold image")
+# plt.imshow(thresh)
+# plt.show()
 
 # ## <font style = "color:rgb(50,120,229)">Step 3.2: Perform morphological operations</font>
 # 
@@ -146,8 +149,11 @@ plt.title("Red Channel");
 ###
 ### YOUR CODE HERE
 ###
-
-
+element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (6,6))
+imageMorphOpened = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, element, iterations=3)
+# plt.title("closed image")
+# plt.imshow(imageMorphOpened)
+# plt.show()
 # In[150]:
 
 
@@ -240,7 +246,7 @@ detector = cv2.SimpleBlobDetector_create(params)
 ###
 ### YOUR CODE HERE
 ###
-
+keypoints = detector.detect(imageMorphOpened)
 
 # In[158]:
 
@@ -250,7 +256,7 @@ detector = cv2.SimpleBlobDetector_create(params)
 ### YOUR CODE HERE
 ###
 
-
+print("coins detected = {}".format(len(keypoints)))
 # **Note that we were able to detect all 9 coins. So, that's your benchmark.**
 
 # ## <font style = "color:rgb(50,120,229)">Step 4.3: Display the detected coins on original image</font>
@@ -268,6 +274,13 @@ detector = cv2.SimpleBlobDetector_create(params)
 ### YOUR CODE HERE
 ###
 
+image_copy2 = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+for point in keypoints:
+    x,y = point.pt
+    x = int(round(x))
+    y = int(round(y))
+    cv2.circle(image_copy2, (x,y), 3, (255,0,0), -1)
+    cv2.circle(image_copy2, (x,y), int(point.size // 2), (0,0,255), 3)
 
 # In[160]:
 
@@ -276,7 +289,9 @@ detector = cv2.SimpleBlobDetector_create(params)
 ###
 ### YOUR CODE HERE
 ###
-
+# plt.title("blobs")
+# plt.imshow(image_copy2)
+# plt.show()
 
 # ## <font style = "color:rgb(50,120,229)">Step 4.4: Perform Connected Component Analysis</font>
 # 
@@ -307,8 +322,11 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
-
+#
+_, imageMorphOpened = cv2.threshold(imageMorphOpened, 50, 255, cv2.THRESH_BINARY_INV)
+label_count, imLabels = cv2.connectedComponents(imageMorphOpened)
+# plt.imshow(imLabels)
+# plt.show()
 # In[163]:
 
 
@@ -316,7 +334,7 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
+print("number of connected components = {} including the background. {} without the background".format(label_count, label_count - 1))
 
 # In[164]:
 
@@ -326,7 +344,8 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
+# displayConnectedComponents(imLabels)
+# plt.show()
 
 # ## <font style = "color:rgb(50,120,229)">Step 4.5: Detect coins using Contour Detection</font>
 # 
@@ -339,7 +358,7 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
+contours, hierarchy = cv2.findContours(imageMorphOpened, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
 
 # In[166]:
 
@@ -348,7 +367,7 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
+print("Number of contours = {}".format(len(contours)))
 
 # In[167]:
 
@@ -357,8 +376,11 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
-
+image_copy = image.copy()
+contoursImage = cv2.drawContours(image_copy, contours, -1, (255,0,255), 3)
+plt.title("contours with coins")
+# plt.imshow(contoursImage[:,:,::-1])
+# plt.show()
 # Let's only consider the outer contours.
 
 # In[168]:
@@ -369,8 +391,8 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
-
+contours, hierarchy = cv2.findContours(imageMorphOpened, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE )
+print("Number of contours = {}".format(len(contours)))
 # So, we only need the inner contours. The easiest way to do that will be to remove the outer contour using area.
 
 # In[169]:
@@ -380,7 +402,10 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
+for index,cnt in enumerate(contours):
+    area = cv2.contourArea(cnt)
+    perimeter = cv2.arcLength(cnt, True)
+    print("Contour #{} has area = {} and perimeter = {}".format(index+1,area,perimeter))
 
 # In[170]:
 
@@ -390,8 +415,8 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
-
+largest_contour = max(contours, key=cv2.contourArea)
+print("largest contour area = {} ".format(cv2.contourArea(largest_contour)))
 # In[171]:
 
 
@@ -399,8 +424,11 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
-
+image_copy = image.copy()
+filtered_contours = [cnt for cnt in contours if not (cnt is largest_contour)]
+contoursImage2 = cv2.drawContours(image_copy, filtered_contours, -1, (255,0,255), 3)
+# plt.imshow(contoursImage2[:,:,::-1])
+# plt.show()
 # In[173]:
 
 
@@ -408,7 +436,12 @@ def displayConnectedComponents(im):
 ###
 ### YOUR CODE HERE
 ###
-
+image_copy = image.copy()
+for cnt in contours:
+    # Fit a circle
+    ((x,y),radius) = cv2.minEnclosingCircle(cnt)
+    cv2.circle(image, (int(x),int(y)), int(round(radius)), (0,255,255), 2)
+# plt.imshow(image[:,:,::-1])
 
 # # <font style = "color:rgb(50,120,229)">Assignment Part - B</font>
 # 
@@ -420,15 +453,17 @@ def displayConnectedComponents(im):
 
 
 # Image path
-imagePath = DATA_PATH + "images/CoinsB.png"
+imagePath = "CoinsB.png"
 # Read image
 # Store it in variable image
 ###
 ### YOUR CODE HERE
 ###
+image =  cv2.imread(imagePath, cv2.IMREAD_COLOR)
+image_copy = image.copy()
 plt.imshow(image[:,:,::-1]);
 plt.title("Original Image")
-
+plt.show()
 
 # ## <font style = "color:rgb(50,120,229)">Step 2.1: Convert Image to Grayscale</font>
 
